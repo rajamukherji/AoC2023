@@ -1,0 +1,10 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+let Digits := map(pair("0123456789", 0 .. 9))
+loop
+	let Line := while Input:read
+	let Extracted := list(Line -> Digits[_] ->? 1)
+	while Extracted:length > 0
+	Sum := old + (10 * first(Extracted)) + last(Extracted)
+end
+print(Sum)

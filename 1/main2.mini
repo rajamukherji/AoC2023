@@ -1,0 +1,20 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+let Words := {
+	"zero" is 0, "one" is 1, "two" is 2, "three" is 3, "four" is 4,
+	"five" is 5, "six" is 6, "seven" is 7, "eight" is 8, "nine" is 9
+}:grow(pair("0123456789", 0 .. 9))
+loop
+	let Line := while Input:read
+	let First := some(1 .. Line:length; I) do
+		let Test := Line[I, 0]
+		some(Words =>? fun(Word, Digit) Test:starts(Word))
+	end
+	while First
+	let Last := some(Line:length .. 1 by -1; I) do
+		let Test := Line[I, 0]
+		some(Words =>? fun(Word, Digit) Test:starts(Word))
+	end
+	Sum := old + (10 * First) + Last
+end
+print(Sum)
