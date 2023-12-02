@@ -1,0 +1,23 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+
+let Config := {"red" is 12, "green" is 13, "blue" is 14}
+
+loop
+	let Line := while Input:read
+	let Id := integer((while Line % r"Game ([0-9]+): ")[2])
+	let Draws := Line:after(":") / ";"
+	for Draw in Draws do
+		for ColourCount in Draw / "," do
+			let (_, Count, Colour) := ColourCount % r"([0-9]+) ([a-z]+)"
+			print('{Colour} -> {Count}\n')
+			if integer(Count) > Config[Colour] then
+				exit exit
+			end
+		end
+		print("\n")
+	else
+		Sum := old + Id
+	end
+end
+print(Sum)

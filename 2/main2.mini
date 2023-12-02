@@ -1,0 +1,19 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+
+loop
+	let Line := while Input:read
+	let Id := integer((while Line % r"Game ([0-9]+): ")[2])
+	let Minimum := {"red" is 0, "green" is 0, "blue" is 0}
+	let Draws := Line:after(":") / ";"
+	for Draw in Draws do
+		for ColourCount in Draw / "," do
+			let (_, Count, Colour) := ColourCount % r"([0-9]+) ([a-z]+)"
+			Minimum[Colour] := old max integer(Count)
+		end
+	end
+	let Power := prod(Minimum)
+	print('{Id} -> {Minimum} -> {Power}\n')
+	Sum := old + Power
+end
+print(Sum)
