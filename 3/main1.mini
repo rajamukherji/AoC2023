@@ -1,0 +1,58 @@
+let Input := file(Args[1], "r")
+
+let UsedParts := set()
+let AllParts := set()
+
+var LastParts := []
+var LastSymbols := set()
+var Row := 0
+
+loop
+	let Line := while Input:read
+	Row := old + 1
+	var A, B
+	let CurrentParts := []
+	let CurrentSymbols := set()
+	for I, C in Line do
+		switch C: string
+		case r"[0-9]" do
+			A := old or I
+			B := I
+		case ".", "\n" do
+			if A then
+				CurrentParts:put((A, B, integer(Line[A, B + 1]), Row))
+				A := B := nil
+			end
+		else
+			CurrentSymbols:insert(I)
+			if A then
+				CurrentParts:put((A, B, integer(Line[A, B + 1]), Row))
+				A := B := nil
+			end
+		end
+	end
+	AllParts:grow(CurrentParts)
+	print('{Row} -> {CurrentParts}\n')
+	print('{Row} -> {CurrentSymbols}\n\n\n\n')
+	for Part in LastParts do
+		for I in (Part[1] - 1) .. (Part[2] + 1) do
+			if CurrentSymbols[I] then
+				UsedParts:insert(Part)
+			end
+		end
+	end
+	for Part in CurrentParts do
+		for I in (Part[1] - 1) .. (Part[2] + 1) do
+			if LastSymbols[I] or CurrentSymbols[I] then
+				UsedParts:insert(Part)
+			end
+		end
+	end
+	LastParts := CurrentParts
+	LastSymbols := CurrentSymbols
+end
+
+print('UsedParts = {UsedParts}\n')
+print('UnusedParts = {AllParts / UsedParts}\n')
+print('Sum = {sum(UsedParts, _[3])}\n')
+
