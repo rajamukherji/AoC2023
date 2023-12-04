@@ -1,0 +1,17 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+let Digits := map(pair("0123456789", 0 .. 9))
+let Counts := {1 is 1}
+for I in 1:up do
+	let Line := while Input:read
+	while Line:length > 3
+	let Count := Counts[I, fun 1]
+	print('{I} -> {Count}\n')
+	let Winning := set(Line:after(":"):before("|") / " ", :trim)
+	let Actual := set(Line:after("|") / " ", :trim)
+	let Matches := Winning /\ Actual
+	for J in 1 .. Matches:size do
+		Counts[I + J, fun 1] := old + Count
+	end
+end
+print(sum(Counts))
