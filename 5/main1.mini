@@ -1,0 +1,26 @@
+let Input := file(Args[1], "r")
+
+var Values := list(Input:read:after(":") / " ", :trim, integer)
+print('Values = {Values}\n')
+Input:read
+
+loop
+	while Input:read{} != "\n"
+	let Ranges := []
+	loop
+		let Line := Input:read
+		while Line != "\n"
+		Ranges:put(list(Line / " ", :trim, integer))
+	end
+	Values := list(Values; Value) do
+		for (D, S, N) in Ranges do
+			if S <= Value < (S + N) then
+				ret D + (Value - S)
+			end
+		end
+		Value
+	end
+	print('Values = {Values}\n')
+end
+
+print(min(Values))

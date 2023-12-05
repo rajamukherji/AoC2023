@@ -1,0 +1,49 @@
+let Input := file(Args[1], "r")
+
+var Values := []
+each batch(Input:read:after(":") / " " -> :trim -> integer, 2; T, N) do
+	Values:put((T, T + N - 1))
+end
+
+print('Values = {Values}\n\n')
+Input:read
+
+loop
+	while Input:read{} != "\n"
+	let Ranges := []
+	loop
+		let Line := Input:read
+		while Line != "\n"
+		let (D, S, N) := list(Line / " ", :trim, integer)
+		Ranges:put((S, S + N - 1, D - S))
+	end
+	print('Map = {Ranges}\n')
+	let Mapped := []
+	for (S1, S2, D) in Ranges do
+		let Next := []
+		for (T1, T2) in Values do
+			if S1 > T2 or S2 < T1 then
+				Next:put((T1, T2))
+			elseif S1 <= T1 then
+				if T2 <= S2 then
+					Mapped:put((T1 + D, T2 + D))
+				else
+					Mapped:put((T1 + D, S2 + D))
+					Next:put((S2 + 1, T2))
+				end
+			elseif S2 >= T2 then
+				Mapped:put((S1 + D, T2 + D))
+				Next:put((T1, S1 - 1))
+			else
+				Mapped:put((S1 + D, S2 + D))
+				Next:put((T1, S1 - 1))
+				Next:put((S2 + 1, T2))
+			end
+		end
+		Values := Next
+	end
+	Values:grow(Mapped)
+	print('Values = {Values}\n\n')
+end
+
+print(min(Values, _[1]))
