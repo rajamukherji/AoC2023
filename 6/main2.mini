@@ -1,0 +1,19 @@
+let Input := file(Args[1], "r")
+
+
+let Times := [integer(Input:read:after(":"):replace(r"\s", ""))]
+let Distances := [integer(Input:read:after(":"):replace(r"\s", ""))]
+
+var Prod := 1
+for T in Times; D in Distances do
+	let Disc := math::sqrt((T * T) - (4 * D))
+	var N1 := math::ceil((T - Disc) / 2)
+	var N2 := math::floor((T + Disc) / 2)
+	if (T - N1) * N1 = D then N1 := old + 1 end
+	if (T - N2) * N2 = D then N2 := old - 1 end
+	let N := N2 - N1 + 1
+	print('{T}, {D} -> {N1} .. {N2} = {N}\n')
+	Prod := old * N
+end
+
+print(Prod)
