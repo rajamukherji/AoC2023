@@ -1,0 +1,32 @@
+let Input := file(Args[1], "r")
+
+class: hand(:cards, :bid, :sort)
+
+let Values := map(pair("23456789TJQKA", 2:up))
+print('Values = {Values}\n')
+
+let Hands := []
+
+loop
+	let Line := while Input:read
+	while Line:length > 5
+	let Cards := Line[1, 6]
+	let Sort := list(list(Cards):sort:group(1), count):sort(>)
+	for I in Sort:length ..< 5 do
+		Sort:put(0)
+	end
+	Sort:grow(Cards, Values[_])
+	let Hand := hand(Cards, integer(Line[7, -1]), tuple ! Sort)
+	print('{Hand}\n')
+	Hands:put(Hand)
+end
+
+print("\n")
+
+Hands:sort(; A, B) A:sort < B:sort
+
+for Hand in Hands do
+	print('{Hand}\n')
+end
+
+print(sum(Hands -> :bid => *))
