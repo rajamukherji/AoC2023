@@ -1,0 +1,21 @@
+let Input := file(Args[1], "r")
+
+let Directions := list(Input:read:trim)
+Input:read
+
+let Map := {}
+loop
+	let (_, X, L, R) := while Input:read % r"(...) = \((...), (...)\)"
+	Map[X] := {"L" is L, "R" is R}
+end
+
+print('Map = {Map}\n')
+
+var Position := "AAA"
+let Steps := for Steps in 1:up; Direction in &Directions do
+	print('Position = {Position}\n')
+	Position := Map[Position][Direction]
+	until Position = "ZZZ", Steps
+end
+
+print('Steps = {Steps}\n')

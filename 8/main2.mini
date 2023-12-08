@@ -1,0 +1,34 @@
+let Input := file(Args[1], "r")
+
+let Directions := list(Input:read:trim)
+Input:read
+
+let Map := {}
+loop
+	let (_, X, L, R) := while Input:read % r"(...) = \((...), (...)\)"
+	Map[X] := {"L" is L, "R" is R}
+end
+
+print('Map = {Map}\n')
+
+fun steps(var Position) do
+	print(Position)
+	for Steps in 1:up; Direction in &Directions do		
+		Position := Map[Position][Direction]
+		print(' -> {Position}')
+		if Position[3] = "Z" then
+			print("\n")
+			ret Steps
+		end
+	end
+end
+
+let Starts := list(key(Map) ->? fun(X) X[3] = "A")
+let Steps := list(Starts, steps)
+
+print('Starts = {Starts}\n')
+print('Steps = {Steps}\n')
+
+let MinSteps := reduce(Steps; A, B) A * B / math::gcd(A, B)
+
+print('MinSteps = {MinSteps}\n')
