@@ -1,0 +1,21 @@
+let Input := file(Args[1], "r")
+var Sum := 0
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	var Seq := list(Line / " ", integer)
+	print('Seq = {Seq}\n')
+	let Last := []
+	loop
+		Last:push(Seq[-1])
+		Seq := list(batch(Seq, 2, 1; A, B) B - A)
+		print('Seq = {Seq}\n')
+		let Test := Seq[1]
+		until all(Seq, _ = Test)
+	end
+	print("\n")
+	let New := Seq[-1] + sum(Last)
+	print('New = {New}\n')
+	Sum := old + New
+end
+print(Sum)
