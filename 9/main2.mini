@@ -10,12 +10,10 @@ loop
 		First:push(Seq[1])
 		Seq := list(batch(Seq, 2, 1; A, B) B - A)
 		print('Seq = {Seq}\n')
-		let Test := Seq[1]
-		until all(Seq, _ = Test)
+		until reduce(Seq, =)
 	end
-	print("\n")
 	let New := reduce(Seq[1], First; A, B) B - A
-	print('New = {New}\n')
+	print('New = {New}\n\n')
 	Sum := old + New
 end
 print(Sum)
