@@ -1,0 +1,140 @@
+let (Width, Height) := with Input := file(Args[1], "r") do
+	let Line := Input:read
+	let Width := Line:length - 1
+	var Height := 1
+	loop
+		while Input:read{}:length >= Width
+		Height := old + 1
+	end
+	(Width, Height)
+end
+
+print('Size = {Width} x {Height}\n')
+
+let Map := array::any([Width, Height])
+
+let Dirs := [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+let Start := with Input := file(Args[1], "r") do
+	def Pieces := {
+		"|" is [nil, 2, nil, 4, "┃"],
+		"-" is [1, nil, 3, nil, "━"],
+		"L" is [nil, 1, 4, nil, "┗"],
+		"J" is [4, 3, nil, nil, "┛"],
+		"7" is [2, nil, nil, 3, "┓"],
+		"F" is [nil, nil, 2, 1, "┏"],
+		"." is [nil, nil, nil, nil, " "],
+		"S" is nil
+	}
+	for Y in 1 .. Height do
+		let Line := Input:read
+		for X in 1 .. Width; Piece in Line do
+			Map[X, Y] := Pieces[Piece]
+		end
+	end
+	for Pos, Piece in Map do
+		while Piece, Pos
+	end
+end
+
+meth +(A: tuple[integer, integer], B: tuple[integer, integer]) (A[1] + B[1], A[2] + B[2])
+meth -(A: tuple[integer, integer], B: tuple[integer, integer]) (A[1] - B[1], A[2] - B[2])
+
+fun follow(Start, var Dir) do
+	let Path := [Start]
+	var Pos := Start + Dirs[Dir]
+	print('\n{Start}')
+	loop
+		print(' -> {Pos}')
+		Path:put(Pos)
+		let Piece := Map[Pos] or ret Path
+		Dir := Piece[Dir] or ret nil
+		Pos := old + Dirs[Dir]
+	end
+end
+
+:>print('Map = {Map)\n')
+print('Start = {Start}\n')
+
+let Loop := some(1 .. 4, follow(Start, _))
+
+print('\nLoop = {Loop}\n')
+
+"┃━┗┛┓┏"
+
+let Gap := (Dirs:find(Loop[2] - Loop[1]), Dirs:find(Loop[-2] - Loop[1]))
+print('Gap = {Gap}\n')
+
+let Fill := array::any([Width, Height];) " "
+for Pos in Loop do
+	Fill[Pos] := Map[Pos]{}[5] or "?"
+end
+Fill[Start] := {
+	(1, 2) is "┏",
+	(1, 3) is "━",
+	(1, 4) is "┗",
+	(2, 1) is "┏",
+	(2, 3) is "┛",
+	(2, 4) is "┃",
+	(3, 1) is "━",
+	(3, 2) is "┓",
+	(3, 4) is "┛",
+	(4, 1) is "┗",
+	(4, 2) is "┃",
+	(4, 3) is "┛"
+}[Gap]
+
+for Y in 1 .. Height do
+	print(sum(Fill[nil, Y]), "\n")
+end
+
+var Count := 0
+for Y in 1 .. Height do
+	:>print(sum(Fill[nil, Y]), "\n")
+	var Inside := 0
+	var Directions := []
+	for X in 1 .. Width do
+		let F := Fill[X, Y]
+		:>print('{Directions} -> {F}')
+		if F = " " then
+			if Inside > 0 then
+				Count := old + 1
+				Fill[X, Y] := "*"
+			end
+		else
+			
+			switch F: string
+			case "┃" do Inside := 1 - old
+			case "━" do
+			case "┗" do
+				Directions:put(-1)
+				Inside := 1 - old
+			case "┛" do
+				if Directions[-1] = 1 then
+					Directions:pull
+				else
+					Inside := 1 - old
+				end
+			case "┓" do
+				if Directions[-1] = -1 then
+					Directions:pull
+				else
+					Inside := 1 - old
+				end
+			case "┏" do
+				Directions:put(1)
+				Inside := 1 - old
+			end
+		end
+		:>print(' -> {Directions} -> {Inside}\n')
+	end
+	:>print("\n")
+end
+
+print("\n")
+for Y in 1 .. Height do
+	print(sum(Fill[nil, Y]), "\n")
+end
+
+print('Count = {Count}\n')
+
