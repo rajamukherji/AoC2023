@@ -1,0 +1,59 @@
+let Input := file(Args[1], "r")
+
+let Galaxies := []
+var Y := 1
+let XCounts := with Line := Input:read:trim do
+	let XCounts := list(Line;) 0
+	let XS := list(swap(Line) =>? fun(C) C = "#")
+	print('{Line} -> {XS}\n')
+	if XS:length = 0 then
+		Y := old + 2
+	else
+		for X in XS do
+			XCounts[X] := 1
+			Galaxies:put([X, Y])
+		end
+		Y := old + 1
+	end
+	XCounts
+end
+loop
+	let Line := while Input:read{}:trim
+	let XS := list(swap(Line) =>? fun(C) C = "#")
+	print('{Line} -> {XS}\n')
+	if XS:length = 0 then
+		Y := old + 2
+	else
+		for X in XS do
+			XCounts[X] := old + 1
+			Galaxies:put([X, Y])
+		end
+		Y := old + 1
+	end
+end
+let XMap := list(1 .. XCounts:length)
+var X := 1
+for I, XC in XCounts do
+	XMap[I] := X
+	if XC = 0 then
+		X := old + 2
+	else
+		X := old + 1
+	end
+end
+for Galaxy in Galaxies do
+	Galaxy[1] := XMap[old]
+end
+
+print('XMap = {XMap}\n')
+print('XCounts = {XCounts}\n')
+print('Y = {Y}\n')
+print('Galaxies = {Galaxies}\n')
+
+var Sum := 0
+for I, A in Galaxies do
+	for B in Galaxies skip I do
+		Sum := old + math::abs(A[1] - B[1]) + math::abs(A[2] - B[2])
+	end
+end
+print('Sum = {Sum}\n')
