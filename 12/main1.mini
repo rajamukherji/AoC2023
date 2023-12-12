@@ -1,0 +1,56 @@
+let Input := file(Args[1], "r")
+
+var Sum := 0
+loop
+	let Line := while Input:read{}:trim
+	while Line:length > 2
+	let Places := list(Line:before(" "))
+	let Groups := list(Line:after(" ") / ",", integer)
+	let Cache := {}
+	
+	fun num_arrangements(L, G) do
+		ret Cache[(L, G);] do
+			let C := Places[L] or do
+				if Groups[G] then
+					ret 0
+				else
+					ret 1
+				end
+			end
+			switch C: string
+			case "." do
+				ret num_arrangements(L + 1, G)
+			case "#" do
+				if let N := Groups[G] then
+					if all(L ..< (L + N); I) Places[I] = "#" or Places[I] = "?" then
+						if not Places[L + N] = "#" then
+							ret num_arrangements(L + N + 1, G + 1)
+						end
+					end
+				end
+				ret 0
+			case "?" do
+				var Total := num_arrangements(L + 1, G)
+				if let N := Groups[G] then
+					if all(L ..< (L + N); I) Places[I] = "#" or Places[I] = "?" then
+						if not Places[L + N] = "#" then
+							Total := old + num_arrangements(L + N + 1, G + 1)
+						end
+					end
+				end
+				ret Total
+			end
+		end
+	end
+	
+	let NumArrangements := num_arrangements(1, 1)
+	:<for Pos, Count in Cache do
+		print('{Pos} -> {Count}\n')
+	end>:
+	print('{Places} - {Groups} -> {NumArrangements}\n')
+	Sum := old + NumArrangements
+end
+
+print('Sum = {Sum}\n')
+
+

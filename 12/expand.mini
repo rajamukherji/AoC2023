@@ -1,0 +1,19 @@
+let Input := file(Args[1], "r")
+let Output := file(Args[1] + "x5", "w")
+
+loop
+	let Line := while Input:read{}:trim
+	while Line:length > 2
+	let Places := Line:before(" ")
+	let Groups := Line:after(" ")
+	Output:write(Places)
+	for I in 1 .. 4 do Output:write("?", Places) end
+	Output:write(" ")
+	Output:write(Groups)
+	for I in 1 .. 4 do Output:write(",", Groups) end
+	Output:write("\n")
+end
+
+Output:write("\n")
+Output:close
+
