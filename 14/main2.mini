@@ -1,0 +1,53 @@
+let Input := file(Args[1], "r")
+let Lines := list(seq Input:read{it != "\n"}:trim)
+let Grid := array(list(Lines, list))
+print('Grid = {Grid}\n')
+
+let (H, W) := Grid:shape
+let H1 := H + 1
+
+fun tilt(Grid) do
+	for C in 1 .. W do
+		var Free := 1
+		var Load := 0
+		for X, Y in Grid[nil, C] do
+			switch Y: string
+			case "O" do
+				Y := "."
+				Grid[Free, C] := "O"
+				Free := old + 1
+			case "#" do
+				Free := X + 1
+			end
+		end
+	end
+end
+
+fun load(Grid) sum(Grid:where(_ = "O"); Pos) H1 - Pos[1]
+
+let Transpose := ^Grid
+let Grids := [Grid, Transpose, Grid:reverse(1), Transpose:reverse(1)]
+
+for R in 1 .. H do print(Grid[R], "\n") end
+print("\n")
+
+let Cache := []
+let Loads := []
+
+let (Start, Length) := for I in 1 .. 1000000000 do
+	each Grids -> tilt
+	let Spheres := list(Grid:where(_ = "O"))
+	if let Start := Cache:find(Spheres) then
+		let Length := I - Start
+		print('Found cycle of length {Length} from {Start}\n')
+		exit (Start, Length)
+	end
+	Cache:put(Spheres)
+	let Load := load(Grid)
+	Loads:put(Load)
+	print('{I} -> {Load}\n')
+end
+
+print(Loads[1000000000 - Start % Length + Start], "\n")
+
+
