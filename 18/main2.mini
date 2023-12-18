@@ -1,0 +1,26 @@
+let Input := file(Args[1], "r")
+let Lines := list((seq Input:read{it != "\n"}:trim) -> (_ / " "))
+print('Lines = {Lines}\n')
+
+var X := 0, Y := 0, Area := 0, Edge := 0
+print('{X}, {Y}\n')
+for Line in Lines do
+	let Dist := integer(Line[3][3, 8], 16)
+	switch integer(Line[3][8])
+	case :> R
+		Area := old - (Y * Dist)
+		X := old + Dist
+	case :> D
+		Y := old + Dist
+	case :> L
+		Area := old + (Y * Dist)
+		X := old - Dist
+	case :> U
+		Y := old - Dist
+	end
+	Edge := old + (Dist / 2)
+	print('{X}, {Y}\n')
+end
+:>Area := old + (Y * (X + 1))
+
+print('{Area + Edge + 1}\n')

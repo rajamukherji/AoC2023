@@ -1,0 +1,48 @@
+let Input := file(Args[1], "r")
+let Lines := list((seq Input:read{it != "\n"}:trim) -> (_ / " "))
+print('Lines = {Lines}\n')
+
+let Dirs := {
+	"R" is $[0, 1],
+	"L" is $[0, -1],
+	"U" is $[-1, 0],
+	"D" is $[1, 0]
+}
+
+let Points := list(distill($[1, 1], Lines; Point, Line) integer(Line[2]) * Dirs[Line[1]] + Point)
+
+print('Points = {Points}\n')
+
+let MinY := min(Points, _[1])
+let MinX := min(Points, _[2])
+let H := max(Points, _[1]) + 1 - MinY
+let W := max(Points, _[2]) + 1 - MinX
+
+let Grid := array::int32([H, W])
+
+var Point := $[2 - MinY, 2 - MinX]
+for Line in Lines do
+	let Dir := Dirs[Line[1]]
+	Grid[Point[1], Point[2]] := 1
+	for I in 1 .. integer(Line[2]) do
+		Point := old + Dir
+		Grid[Point[1], Point[2]] := 1
+	end
+end
+
+for Y in 1 .. H do print(Grid[Y], "\n") end
+print("\n")
+
+let Queue := [$[3 - MinY, 3 - MinX]]
+loop
+	let Point := while Queue:pop
+	ref Ref := Grid[Point[1], Point[2]]
+	if Ref = 0 then
+		Ref := 2
+		Queue:grow(Dirs, Point + _)
+	end
+end
+
+for Y in 1 .. H do print(Grid[Y], "\n") end
+print("\n")
+print(sum(Grid > 0))
