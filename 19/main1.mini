@@ -1,0 +1,39 @@
+let Input := file(Args[1], "r")
+
+let Workflows := {}
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	let Name := Line:before("{")
+	let Texts := Line:after("{"):before("}") / ","
+	let Default := Texts:pull
+	let Rules := []
+	for Text in Texts do
+		let (_, Cat, Cmp, Value, Next) := Text % r"([a-z]+)([<>])([0-9]+):(.+)"
+		let Method := method(Cmp)
+		let Y := integer(Value)
+		let Rule := _[Cat] -> Method(_, Y)
+		Rules:put((Rule, Next))
+	end
+	Rules:put((1, Default))
+	Workflows[Name] := Rules
+end
+
+var Accepted := 0
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	let Part := map(fold(Line[2, -1] / r"[,=]"), integer)
+	print('Part = {Part}\n')
+	var Workflow := Workflows["in"]
+	Accepted := old + loop
+		let Next := for (Test, Next) in Workflow do
+			until Test(Part), Next
+		end
+		until Next = "A", sum(Part)
+		until Next = "R", 0
+		Workflow := Workflows[Next]
+	end
+end
+
+print(Accepted)

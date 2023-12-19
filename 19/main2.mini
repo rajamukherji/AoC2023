@@ -1,0 +1,82 @@
+let Input := file(Args[1], "r")
+
+let Workflows := {}
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	let Name := Line:before("{")
+	let Texts := Line:after("{"):before("}") / ","
+	let Default := Texts:pull
+	let Rules := []
+	for Text in Texts do
+		let (_, Cat, Cmp, Value, Next) := Text % r"([a-z]+)([<>])([0-9]+):(.+)"
+		let Y := integer(Value)
+		Rules:put((Cat, Cmp, Y, Next))
+	end
+	Rules:put(("x", ">", 0, Default))
+	Workflows[Name] := Rules
+end
+
+for Name, Workflow in Workflows do
+	print('{Name} -> {Workflow}\n')
+end
+
+fun rule(Ranges, Cmp, Value) do
+	let Pass := [], Fail := []
+	switch Cmp: string
+	case "<" do
+		for Range in Ranges do
+			let (Min, Max) := Range
+			if Max < Value then
+				Pass:put(Range)
+			elseif Min < Value then
+				Pass:put((Min, Value - 1))
+				Fail:put((Value, Max))
+			else
+				Fail:put(Range)
+			end
+		end
+	case ">" do
+		for Range in Ranges do
+			let (Min, Max) := Range
+			if Min > Value then
+				Pass:put(Range)
+			elseif Max > Value then
+				Pass:put((Value + 1, Max))
+				Fail:put((Min, Value))
+			else
+				Fail:put(Range)
+			end
+		end
+	end
+	ret (Pass, Fail)
+end
+
+let Accepted := []
+let Queue := [(Workflows["in"], map(swap("xmas");) [(1, 4000)])]
+loop
+	var (Rules, Ranges) := while Queue:pop
+	print(Rules, "\n")
+	for (Cat, Cmp, Value, Next) in Rules do
+		let (Pass, Fail) := rule(Ranges[Cat], Cmp, Value)
+		:>print('{Ranges}[{Cat}] {Cmp} {Value} => {Pass}, {Fail}\n')
+		if Pass:length > 0 then
+			switch Next: string
+			case "A" do
+				Accepted:put(Ranges + {Cat is Pass})
+			case "R" do
+			else
+				Queue:put((Workflows[Next], Ranges + {Cat is Pass}))
+			end
+		end
+		while Fail:length > 0
+		Ranges[Cat] := Fail
+	end
+end
+
+for Cats in Accepted do
+	print(Cats, "\n")
+end
+
+let Total := sum(Accepted; Cats) prod(Cats; Ranges) sum(Ranges; (A, B)) B + 1 - A
+print(Total)
