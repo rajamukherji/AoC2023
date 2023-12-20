@@ -1,0 +1,45 @@
+let Input := file(Args[1], "r")
+
+class: module(:name, :type, :inputs, init is; Module, Name) do
+	Module:name := Name
+	Module:inputs := []
+end
+
+let Lines := list(seq Input:read{it != "\n"}:trim)
+print('Lines = {Lines}\n')
+
+let Modules := {}
+for Line in Lines do
+	let (_, Type, Name, Destinations) := Line % r"([%&]?)([a-z]+) -> (.*)"
+	let Source := Modules[Name, module]
+	Source:type := Type or ""
+	for Destination in Destinations  / ", " do
+		Modules[Destination, module]:inputs:put(Source)
+	end
+end
+let Broadcaster := Modules["broadcaster"]
+let Rx := Modules["rx"]
+
+let Graph := file("graph.dot", "w")
+Graph:write("digraph {\n")
+def Shapes := {"" is "circle", "%" is "diamond", "&" is "triangle"}
+for Name, Module in Modules do
+	let Shape := Shapes[Module:type] or "point"
+	Graph:write('\t{Name} [shape={Shape}];\n')
+	for Input in Module:inputs do
+		Graph:write('\t{Input:name}->{Name};\n')
+	end
+end
+Graph:write("}\n")
+Graph:close
+
+fun predict(Module, State) do
+	switch Module:type: string
+	case "" do
+	case "%" do
+	case "&" do
+	end
+end
+
+:> zk, qs, ks, jf must all be low
+:> Calculate cycle time with main2.mini and multiply

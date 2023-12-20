@@ -1,0 +1,102 @@
+let Input := file(Args[1], "r")
+
+class: module(:outputs, :state, init is; Module) do
+	Module:outputs := []
+end
+
+meth :receive(Module: module, Pulse: integer, Key: integer) nil
+
+class: broadcaster(module, init is; Module) do
+	Module:outputs := []
+end
+
+meth :receive(Module: broadcaster, Pulse: integer, Key: integer) do
+	for Output in Module:outputs do susp (Output, Pulse) end
+end
+
+class: flipflop(module, init is; Module) do
+	Module:outputs := []
+	Module:state := 0
+end
+
+meth :receive(Module: flipflop, Pulse: integer, Key: integer) do
+	switch Pulse
+	case
+		let State := (Module:state := 1 - old)
+		for Output in Module:outputs do susp (Output, State) end
+	case
+	end
+end
+
+class: conjunction(module, :inputs, :target, init is; Module) do
+	Module:outputs := []
+	Module:state := 0
+	Module:target := 0
+end
+
+meth :receive(Module: conjunction, Pulse: integer, Key: integer) do
+	let State := switch Pulse
+	case
+		Module:state := old /\ (~Key)
+		1
+	case
+		if (Module:state := old := old \/ Key) = Module:target then
+			0
+		else
+			1
+		end
+	end
+	for Output in Module:outputs do susp (Output, State) end
+end
+
+meth :connect(Source: module, Destination: module) do
+	Source:outputs:put((Destination, 0))
+end
+
+meth :connect(Source: module, Destination: conjunction) do
+	let Key := Destination:target + 1
+	Source:outputs:put((Destination, Key))
+	Destination:target := old + Key
+end
+
+let Lines := list(seq Input:read{it != "\n"}:trim)
+print('Lines = {Lines}\n')
+
+let Modules := {}
+for Line in Lines do
+	let (_, Type, Name, Destinations) := Line % r"([%&]?)([a-z]+) -> (.*)"
+	switch Type: string
+	case "%" do
+		Modules[Name] := flipflop()
+	case "&" do
+		Modules[Name] := conjunction()
+	else
+		Modules[Name] := broadcaster()
+	end
+end
+for Line in Lines do
+	let (_, Type, Name, Destinations) := Line % r"([%&]?)([a-z]+) -> (.*)"
+	let Source := Modules[Name]
+	for Destination in Destinations  / ", " do
+		Source:connect(Modules[Destination, /module])
+	end
+end
+
+let Broadcaster := Modules["broadcaster"]
+let Test := Modules[Args[2]]
+
+for I in 1:up do
+	let Queue := [((Broadcaster, 0), 0)]
+	loop
+		let (Output, Pulse) := while Queue:pop
+		let (Destination, Key) := Output
+		if Destination = Test and Pulse = 0 then
+			print(I)
+			exit exit
+		end
+		Queue grow Destination:receive(Pulse, Key)
+	end
+	if 10000 | I then
+		print(I, "\n")
+	end
+end
