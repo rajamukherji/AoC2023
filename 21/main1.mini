@@ -1,0 +1,36 @@
+let Input := file(Args[1], "r")
+let Lines := list(seq Input:read{it != "\n"}:trim)
+print('Lines = {Lines}\n')
+
+let H := Lines:length
+let W := Lines[1]:length
+let Grid := array::int8([H, W])
+var Start
+for R, Line in Lines do
+	for C, X in Line do
+		Grid[R, C] := switch X: string
+		case "." do 1
+		case "#" do 0
+		case "S" do Start := (R, C); 1
+		end
+	end
+end
+
+for Y in 1 .. H do print(Grid[Y], "\n") end
+print('Start = {Start}\n')
+
+var Positions := set([Start])
+
+let Target := integer(Args[2])
+for I in 1 .. Target do
+	let Next := set()
+	for (R, C) in Positions do
+		Grid[R + 1, C] = 1 and Next:insert((R + 1, C))
+		Grid[R - 1, C] = 1 and Next:insert((R - 1, C))
+		Grid[R, C + 1] = 1 and Next:insert((R, C + 1))
+		Grid[R, C - 1] = 1 and Next:insert((R, C - 1))
+	end
+	Positions := Next
+end
+
+print(Positions:size)

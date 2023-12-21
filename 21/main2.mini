@@ -1,0 +1,132 @@
+let Input := file(Args[1], "r")
+let Lines := list(seq Input:read{it != "\n"}:trim)
+:>print('Lines = {Lines}\n')
+
+let H := Lines:length
+let W := Lines[1]:length
+let Grid := array::int8([H, W])
+var Start
+for R, Line in Lines do
+	for C, X in Line do
+		Grid[R, C] := switch X: string
+		case "." do 1
+		case "#" do 0
+		case "S" do Start := (R, C); 1
+		end
+	end
+end
+
+:>for Y in 1 .. H do print(Grid[Y], "\n") end
+print('Start = {Start}\n')
+print('Grid = {H} x {W}\n')
+
+var Positions := {Start is set([0])}
+
+let Warmup := integer(Args[2])
+let Train := integer(Args[3])
+let Target := integer(Args[4])
+let CycleSize := integer(Args[5])
+
+for I in 1 ..< Warmup do
+	let Next := {}
+	for Position, S in Positions do
+		let (R, C) := Position
+		if R = H then
+			Grid[1, C] = 1 and Next[(1, C), /set]:grow(S, _ + 1000000)
+			Grid[R - 1, C] = 1 and Next[(R - 1, C), /set]:grow(S)
+		elseif R = 1 then
+			Grid[R + 1, C] = 1 and Next[(R + 1, C), /set]:grow(S)
+			Grid[H, C] = 1 and Next[(H, C), /set]:grow(S, _ - 1000000)
+		else
+			Grid[R + 1, C] = 1 and Next[(R + 1, C), /set]:grow(S)
+			Grid[R - 1, C] = 1 and Next[(R - 1, C), /set]:grow(S)
+		end
+		if C = W then
+			Grid[R, 1] = 1 and Next[(R, 1), /set]:grow(S, _ + 1)
+			Grid[R, C - 1] = 1 and Next[(R, C - 1), /set]:grow(S)
+		elseif C = 1 then
+			Grid[R, C + 1] = 1 and Next[(R, C + 1), /set]:grow(S)
+			Grid[R, W] = 1 and Next[(R, W), /set]:grow(S, _ - 1)
+		else
+			Grid[R, C + 1] = 1 and Next[(R, C + 1), /set]:grow(S)
+			Grid[R, C - 1] = 1 and Next[(R, C - 1), /set]:grow(S)
+		end
+	end
+	Positions := Next
+	print('[{I}]: #Positions = {Positions:size}\n')
+end
+
+let Histories := {}
+
+for I in Warmup .. Train do
+	let Next := {}
+	for Position, S in Positions do
+		let (R, C) := Position
+		if R = H then
+			Grid[1, C] = 1 and Next[(1, C), /set]:grow(S, _ + 1000000)
+			Grid[R - 1, C] = 1 and Next[(R - 1, C), /set]:grow(S)
+		elseif R = 1 then
+			Grid[R + 1, C] = 1 and Next[(R + 1, C), /set]:grow(S)
+			Grid[H, C] = 1 and Next[(H, C), /set]:grow(S, _ - 1000000)
+		else
+			Grid[R + 1, C] = 1 and Next[(R + 1, C), /set]:grow(S)
+			Grid[R - 1, C] = 1 and Next[(R - 1, C), /set]:grow(S)
+		end
+		if C = W then
+			Grid[R, 1] = 1 and Next[(R, 1), /set]:grow(S, _ + 1)
+			Grid[R, C - 1] = 1 and Next[(R, C - 1), /set]:grow(S)
+		elseif C = 1 then
+			Grid[R, C + 1] = 1 and Next[(R, C + 1), /set]:grow(S)
+			Grid[R, W] = 1 and Next[(R, W), /set]:grow(S, _ - 1)
+		else
+			Grid[R, C + 1] = 1 and Next[(R, C + 1), /set]:grow(S)
+			Grid[R, C - 1] = 1 and Next[(R, C - 1), /set]:grow(S)
+		end
+	end
+	Positions := Next
+	for Position, S in Positions do
+		Histories[Position, /list]:put(S:size)
+	end
+	print('[{I}]: #Positions = {Positions:size}\n')
+end
+
+let Cycles := list(Warmup .. Target; I) I div 	CycleSize
+let Cycles2 := list(Cycles, _ ^ 2)
+
+let Polynomials := {}
+
+let X := polynomial("x")
+
+for Position, History in Histories do
+	let Polys := Polynomials[Position] := list(1 .. CycleSize, 0)
+	for C in Cycles; C2 in Cycles2; Count in History; I in Warmup:up do
+		let Y := Count - C2
+		var D := Y div C
+		var R := Y - (D * C)
+		if R > (C div 4) then
+			D := old + 1
+			R := Y - (D * C)
+		elseif R < -(C div 4) then
+			D := old - 1
+			R := Y - (D * C)
+		end
+		let P := (X * X) + (D * X) + R
+		if string(Polys[I % CycleSize + 1]{}) != string(P) then
+			print(list(zip(History, Cycles2, -)), "\n")
+			error("Aaah!", 'This doesn\'t work: {P}')
+		end
+		Polys[I % CycleSize + 1] := P
+	end
+end
+
+for Position, Polys in Polynomials do
+	print('{Position} -> {Polys}\n')
+end
+
+let TargetCycle := Target div CycleSize
+let TargetIndex := Target % CycleSize + 1
+var Total := 0
+for Position, Polys in Polynomials do
+	Total := old + Polys[TargetIndex](TargetCycle)
+end
+print(Total)
