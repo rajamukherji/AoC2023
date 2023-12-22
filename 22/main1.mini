@@ -1,0 +1,53 @@
+let Input := file(Args[1], "r")
+
+let Bricks := []
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	let X := list(Line / r"[,~]", integer)
+	Bricks:put((X[1] .. X[4] + 1, X[2] .. X[5] + 1, X[3], X[6], set()))
+end 
+
+Bricks:sort(; A, B) A[3] < B[3]
+
+print('Bricks = {Bricks}\n')
+
+let Plan := array::int32([max(Bricks, _[1], :last), max(Bricks, _[2], :last)])
+let Height := array::int32(Plan:shape)
+
+print('Plan = {Plan}\n')
+print('Height = {Height}\n')
+
+for N, (X, Y, Z1, Z2) in Bricks do
+	print('\n\nBrick = {X}, {Y}, {Z1}, {Z2}\n')
+	if Z1 = 1 then
+		Plan[X, Y] := N
+		Height[X, Y] := Z2
+	else
+		var Z := 0, R := set()
+		for I in X do
+			for J in Y do
+				let H := Height[I, J]
+				:>print('\t{I}, {J} -> {H}\n')
+				if Z < H then
+					Z := H
+					R := set()
+					R:insert(Plan[I, J])
+				elseif Z = H then
+					R:insert(Plan[I, J])
+				end
+			end
+		end
+		print('\tZ = {Z}, R = {R}\n')
+		if Z > 0 and R:size = 1 then
+			Bricks[first(R)][5]:insert(N)
+		end
+		Plan[X, Y] := N
+		Height[X, Y] := Z + 1 + (Z2 - Z1)
+	end
+	print('Plan = {Plan}\n')
+	print('Height = {Height}\n')
+end
+
+print('Bricks = {Bricks}\n')
+print(count(Bricks ->? fun(Brick) Brick[5]:size = 0))

@@ -1,0 +1,62 @@
+let Input := file(Args[1], "r")
+
+let Bricks := []
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	let X := list(Line / r"[,~]", integer)
+	Bricks:put((X[1] .. X[4] + 1, X[2] .. X[5] + 1, X[3], X[6], set()))
+end 
+
+Bricks:sort(; A, B) A[3] < B[3]
+
+print('Bricks = {Bricks}\n')
+
+let Plan := array::int32([max(Bricks, _[1], :last), max(Bricks, _[2], :last)])
+let Height := array::int32(Plan:shape)
+
+print('Plan = {Plan}\n')
+print('Height = {Height}\n')
+
+for N, (X, Y, Z1, Z2, S) in Bricks do
+	:>print('\n\nBrick = {X}, {Y}, {Z1}, {Z2}\n')
+	var Z := 0
+	for I in X do
+		for J in Y do
+			let H := Height[I, J]
+			:>print('\t{I}, {J} -> {H}\n')
+			if Z < H then
+				Z := H
+				S:empty:insert(Plan[I, J])
+			elseif Z = H then
+				S:insert(Plan[I, J])
+			end
+		end
+	end
+	S:delete(0)
+	:>print('\tZ = {Z}, S = {S}\n')
+	Plan[X, Y] := N
+	Height[X, Y] := Z + 1 + (Z2 - Z1)
+	:>print('Plan = {Plan}\n')
+	:>print('Height = {Height}\n')
+end
+
+:>for Brick in Bricks do
+:>	print('{Brick}\n')
+:>end
+:>print(count(Bricks ->? fun(Brick) Brick[5]:size = 0))
+
+var Sum := 0
+for I, Brick in Bricks do
+	let Drops := set([I])
+	for J in I + 1 .. Bricks:length do
+		let S := Bricks[J][5]
+		if some(S, _ in Drops) and all(S, _ in Drops) then
+			Drops:insert(J)
+		end
+	end
+	Sum := old + (Drops:size - 1)
+	print('{I}: {Brick} -> {Drops}\n')
+end
+print(Sum)
+
