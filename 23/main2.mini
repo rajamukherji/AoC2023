@@ -1,0 +1,138 @@
+let Input := file(Args[1], "r")
+let Lines := list(seq Input:read{it != "\n"}:trim)
+print('Lines = {Lines}\n')
+
+let H := Lines:length
+let W := Lines[1]:length
+
+let Grid := array::int8([H, W])
+
+for R, Line in Lines do
+	for C, X in Line do
+		Grid[R, C] := "#.^>v<":find(X)
+	end
+end
+
+for Y in 1 .. H do print(Grid[Y], "\n") end
+print("\n")
+
+class: path(:points, :oneway)
+
+let Paths := []
+let Start := (1, first(1:up ->? fun(C) Grid[1, C] = 2))
+let End := (H, first(1:up ->? fun(C) Grid[H, C] = 2))
+let Queue := [(nil, Start)]
+let Done := set([Start])
+
+loop
+	print(Queue, "\n")
+	var (From, Point) := while Queue:pop
+	let Points := []
+	if From then Points:put(From) end
+	loop
+		Points:put(Point)
+		if Point[1] = H then
+			Paths:put(path(Points))
+			exit
+		end
+		let (R, C) := Point, Next := set()
+		Grid[R - 1, C] > 1 and Next:insert((R - 1, C))
+		Grid[R + 1, C] > 1 and Next:insert((R + 1, C))
+		Grid[R, C - 1] > 1 and Next:insert((R, C - 1))
+		Grid[R, C + 1] > 1 and Next:insert((R, C + 1))
+		Next:delete(Points[-2]{})
+		if Next:size > 1 then
+			Paths:put(path(Points))
+			if Done:missing(Point) then
+				for To in Next do
+					Queue:put((Point, To))
+				end
+			end
+			exit
+		end
+		Point := while first(Next)
+	end
+end
+
+let Indices := {}
+let Waypoints := {}
+
+for Path in Paths do
+	var Direction := 0
+	var (R1, C1) := Path:points[1]
+	for (R2, C2) in Path:points skip 1 do
+		switch Grid[R1, C1]: integer
+		case 3 do
+			if R2 < R1 then
+				Direction := old \/ 1
+			elseif R2 > R1 then
+				Direction := old \/ 2
+			else
+				Direction := 3
+			end
+		case 4 do
+			if C2 > C1 then
+				Direction := old \/ 1
+			elseif C2 < C1 then
+				Direction := old \/ 2
+			else
+				Direction := 3
+			end
+		case 5 do
+			if R2 > R1 then
+				Direction := old \/ 1
+			elseif R2 < R1 then
+				Direction := old \/ 2
+			else
+				Direction := 3
+			end
+		case 6 do
+			if C2 < C1 then
+				Direction := old \/ 1
+			elseif C2 > C1 then
+				Direction := old \/ 2
+			else
+				Direction := 3
+			end
+		end
+		R1 := R2
+		C1 := C2
+	end
+	let Start := Indices[Path:points[1];] 1 << (Indices:size - 1)
+	let End := Indices[Path:points[-1];] 1 << (Indices:size - 1)
+	let Length := Path:points:length - 1
+	Waypoints[Start, /map][End, fun 0] := old max Length
+	Waypoints[End, /map][Start, fun 0] := old max Length
+	:>print(Path, " -> ", Direction, "\n\n")
+end
+
+let Graph := file("graph.dot", "w")
+let Names := {}
+Graph:write("graph {\n")
+for Point, Next in Waypoints do
+	for Point2, Length in Next do
+		if Point2 > Point then
+			Graph:write('\tP_{Point} -- P_{Point2} [label="{Length}"];\n')
+		end
+	end
+end
+Graph:write("}")
+Graph:close
+
+print(Waypoints, "\n")
+
+Queue:empty
+Queue:put((1, 0, 0))
+var Max := 0
+let EndPoint := Indices[End]
+loop
+	print("Remaining = ", Queue:length, "\n")
+	let (Point, Length, Done) := while Queue:pop
+	if Point = EndPoint then Max := old max Length end
+	for Next, Length2 in Waypoints[Point] do
+		if Done /\ Next = 0 then
+			Queue:put((Next, Length + Length2, Done + Next))
+		end
+	end
+end
+print(Max)
