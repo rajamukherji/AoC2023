@@ -1,6 +1,4 @@
 let Input := file(Args[1], "r")
-let Min := integer(Args[2])
-let Max := integer(Args[3])
 
 let Stones := []
 loop
@@ -9,38 +7,34 @@ loop
 	Stones:put(list(Line / r"[,@ ]", real))
 end
 
-fun intersect(A, B) do
-	print('\nA = {A}, B = {B}\n')
-	let (AX, AY, AZ, AU, AV, AW) := A
-	let (BX, BY, BZ, BU, BV, BW) := B
-	:> T1 * AU + AX = T2 * BU + BX
-	:> T1 * AV + AY = T2 * BV + BY
-	:> [[AU, -BU], [AV, -BV]] . [T1, T2] = [BX - AX, BY - AY]
-	let M := $[[AU, -BU], [AV, -BV]]
-	let R := $[BX - AX, BY - AY]
-	print('M = {M}, R = {R}\n')
-	let T := $[[AU, -BU], [AV, -BV]] \ $[BX - AX, BY - AY]
-	print('T = {T}\n')
-	if T[1] < 0 or T[2] < 0 then
-		ret nil
-	end
-	let X := T[1] * AU + AX
-	let Y := T[1] * AV + AY
-	print('X = {X}, {T[2] * BU + BX}, Y = {Y}, {T[2] * BV + BY}\n')
-	ret (X, Y)
-on Error do
-	ret nil
-end
+let (X1, Y1, Z1, U1, V1, W1) := Stones[1]
+let (X2, Y2, Z2, U2, V2, W2) := Stones[2]
 
-var Count := 0
-for I, A in Stones do
-	for B in Stones skip I do
-		if let (X, Y) := intersect(A, B) then
-			if Min <= X <= Max and Min <= Y <= Max then
-				Count := old + 1
-			end
-		end
-	end
-end
+let M := array(list(2 .. 5; I) do
+	let (Xi, Yi, Zi, Ui, Vi, Wi) := Stones[I]
+	[V1 - Vi, Ui - U1, Yi - Y1, X1 - Xi]
+end)
 
-print(Count)
+let R := array(list(2 .. 5; I) do
+	let (Xi, Yi, Zi, Ui, Vi, Wi) := Stones[I]
+	(U1 * Y1) - (X1 * V1) - (Ui * Yi) + (Xi * Vi)
+end)
+
+print('M = {M}\n')
+print('R = {R}\n')
+
+let (Xs, Ys, Us, Vs) := -M \ R
+print('Xs = {Xs}, Ys = {Ys}, Us = {Us}, Vs = {Vs}\n')
+
+let T1 := (X1 - Xs) / (Us - U1)
+let T2 := (X2 - Xs) / (Us - U2)
+
+print('T1 = {T1}, T2 = {T2}\n')
+
+let Ws := (Z1 - Z2 + (W1 * T1) - (W2 * T2)) / (T1 - T2)
+let Zs := Z1 - (T1 * (Ws - W1))
+print('Zs = {Zs}, {Z2 - (T2 * (Ws - W2))}\n')
+
+print('Xs = {Xs}, Ys = {Ys}, Zs = {Zs}, Us = {Us}, Vs = {Vs}, Ws = {Ws}\n')
+
+print(Xs + Ys + Zs)
