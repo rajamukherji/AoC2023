@@ -1,0 +1,46 @@
+let Input := file(Args[1], "r")
+let Min := integer(Args[2])
+let Max := integer(Args[3])
+
+let Stones := []
+loop
+	let Line := while Input:read{}:trim
+	while Line != ""
+	Stones:put(list(Line / r"[,@ ]", real))
+end
+
+fun intersect(A, B) do
+	print('\nA = {A}, B = {B}\n')
+	let (AX, AY, AZ, AU, AV, AW) := A
+	let (BX, BY, BZ, BU, BV, BW) := B
+	:> T1 * AU + AX = T2 * BU + BX
+	:> T1 * AV + AY = T2 * BV + BY
+	:> [[AU, -BU], [AV, -BV]] . [T1, T2] = [BX - AX, BY - AY]
+	let M := $[[AU, -BU], [AV, -BV]]
+	let R := $[BX - AX, BY - AY]
+	print('M = {M}, R = {R}\n')
+	let T := $[[AU, -BU], [AV, -BV]] \ $[BX - AX, BY - AY]
+	print('T = {T}\n')
+	if T[1] < 0 or T[2] < 0 then
+		ret nil
+	end
+	let X := T[1] * AU + AX
+	let Y := T[1] * AV + AY
+	print('X = {X}, {T[2] * BU + BX}, Y = {Y}, {T[2] * BV + BY}\n')
+	ret (X, Y)
+on Error do
+	ret nil
+end
+
+var Count := 0
+for I, A in Stones do
+	for B in Stones skip I do
+		if let (X, Y) := intersect(A, B) then
+			if Min <= X <= Max and Min <= Y <= Max then
+				Count := old + 1
+			end
+		end
+	end
+end
+
+print(Count)
