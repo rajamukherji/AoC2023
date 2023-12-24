@@ -17,13 +17,13 @@ end)
 
 let R := array(list(2 .. 5; I) do
 	let (Xi, Yi, Zi, Ui, Vi, Wi) := Stones[I]
-	(U1 * Y1) - (X1 * V1) - (Ui * Yi) + (Xi * Vi)
+	-((U1 * Y1) - (X1 * V1) - (Ui * Yi) + (Xi * Vi))
 end)
 
 print('M = {M}\n')
 print('R = {R}\n')
 
-let (Xs, Ys, Us, Vs) := -M \ R
+let (Xs, Ys, Us, Vs) := M \ R
 print('Xs = {Xs}, Ys = {Ys}, Us = {Us}, Vs = {Vs}\n')
 
 let T1 := (X1 - Xs) / (Us - U1)
