@@ -1,0 +1,50 @@
+let Input := file(Args[1], "r")
+
+let Connections := {}
+loop
+	let Line := while Input:read{}:trim
+	until Line = ""
+	let Components := Line / r"[: ]"
+	Connections[Components[1], /set]:grow(Components skip 1)
+	for Dest in Components skip 1 do
+		Connections[Dest, /set]
+	end
+end
+
+print(Connections, "\n\n\n")
+
+let Graph := file("graph.dot", "w")
+Graph:write("graph {\n")
+for Source, Dests in Connections do
+	for Dest in Dests do
+		Graph:write('\t{Source} -- {Dest}\n')
+	end
+end
+Graph:write("}")
+Graph:close
+
+for Edge in Args skip 1 do
+	let (Source, Dest) := Edge / "--"
+	Connections[Source]:delete(Dest)
+	Connections[Dest]:delete(Source)
+end
+
+let Clusters := {}
+for Source, Dests in Connections do
+	Clusters[Source] := set([Source])
+end
+
+for Source, Dests in Connections do	
+	var A := Clusters[Source]
+	for Dest in Dests do
+		let B := Clusters[Dest]
+		if A != B then
+			A := old + B
+			for C in A do Clusters[C] := A end
+		end
+	end
+end
+
+let Sizes := list(unique(Clusters), count)
+print(Sizes, "\n")
+print(prod(Sizes))
